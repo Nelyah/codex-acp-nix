@@ -1,0 +1,29 @@
+name: Update codex-acp
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  update:
+    runs-on: nix
+    steps:
+      - uses: https://data.forgejo.org/actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Update
+        env:
+          FORGEJO_SSH_REMOTE: ${{ secrets.FORGEJO_SSH_REMOTE }}
+        run: |
+          nix run nixpkgs#nix-update -- --flake codex-acp
+          git diff --quiet && exit 0
+          nix build
+          version="$(nix eval --raw .#codex-acp.version)"
+          git config user.name "forgejo-actions[bot]"
+          git config user.email "forgejo-actions@noreply.local"
+          git add flake.nix
+          git commit -m "update codex-acp to v$version"
+          git remote set-url origin "$FORGEJO_SSH_REMOTE"
+          git push origin HEAD:main
+

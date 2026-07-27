@@ -9,21 +9,33 @@ jobs:
   update:
     runs-on: nix
     steps:
-      - uses: https://data.forgejo.org/actions/checkout@v6
-        with:
-          persist-credentials: false
+      - name: Checkout
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+        run: |
+          nix-shell -p git --run '
+            set -euo pipefail
+            git clone --depth=1 "https://x-access-token:${TOKEN}@${SERVER#*://}/${REPO}.git" .
+          '
       - name: Update
         env:
-          FORGEJO_SSH_REMOTE: ${{ secrets.FORGEJO_SSH_REMOTE }}
+          NELYAH_BOT_SSH_KEY: ${{ secrets.NELYAH_BOT_SSH_KEY }}
         run: |
-          nix run nixpkgs#nix-update -- --flake codex-acp
-          git diff --quiet && exit 0
-          nix build
-          version="$(nix eval --raw .#codex-acp.version)"
-          git config user.name "forgejo-actions[bot]"
-          git config user.email "forgejo-actions@noreply.local"
-          git add flake.nix
-          git commit -m "update codex-acp to v$version"
-          git remote set-url origin "$FORGEJO_SSH_REMOTE"
-          git push origin HEAD:main
-
+          nix-shell -p git openssh --run '
+            set -euo pipefail
+            umask 077
+            printf "%s\n" "$NELYAH_BOT_SSH_KEY" > "$HOME/deploy_key"
+            export GIT_SSH_COMMAND="ssh -i $HOME/deploy_key -o StrictHostKeyChecking=accept-new"
+            nix run nixpkgs#nix-update -- --flake codex-acp
+            git diff --quiet && exit 0
+            nix build
+            version="$(nix eval --raw .#codex-acp.version)"
+            git config user.name "forgejo-actions[bot]"
+            git config user.email "forgejo-actions@noreply.local"
+            git add flake.nix
+            git commit -m "update codex-acp to v$version"
+            git remote set-url origin "ssh://git@forgejo-ssh.forgejo.svc.k8s.nelyah.eu/Nelyah/codex-acp-nix.git"
+            git push origin HEAD:main
+          '

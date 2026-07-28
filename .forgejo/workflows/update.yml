@@ -17,7 +17,7 @@ jobs:
         run: |
           nix-shell -p git --run '
             set -euo pipefail
-            git clone --depth=1 "https://x-access-token:${TOKEN}@${SERVER#*://}/${REPO}.git" .
+            git clone --depth=1 "${SERVER%%://*}://x-access-token:${TOKEN}@${SERVER#*://}/${REPO}.git" .
           '
       - name: Update
         env:

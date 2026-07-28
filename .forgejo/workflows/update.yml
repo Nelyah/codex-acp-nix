@@ -22,6 +22,7 @@ jobs:
       - name: Update
         env:
           NELYAH_BOT_SSH_KEY: ${{ secrets.NELYAH_BOT_SSH_KEY }}
+          NIX_CONFIG: "experimental-features = nix-command flakes"
         run: |
           nix-shell -p git openssh --run '
             set -euo pipefail

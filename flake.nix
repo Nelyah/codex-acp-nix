@@ -7,9 +7,9 @@
     self,
     nixpkgs,
   }: let
-    version = "2.5.0";
-    srcHash = "sha256-7OK+k81QoS96NgCK1WlMq7lPhfAgwI+AGuv6zomOzf8=";
-    npmDepsHash = "sha256-xACNKR04xLfIRdFo+MdO4aOaLVyhzZdD3vBpok67h4w=";
+    version = "2.6.0";
+    srcHash = "sha256-Qc1kpIKw5ugwjWL8JibkoiqfZHdd92Y/sMR4fW4iqq4=";
+    npmDepsHash = "sha256-nRGMKQ9PNkSLpIPm1iHTIp6N8TLezfYLPd+K7mg/dkk=";
     supportedSystems = [
       "x86_64-linux"
       "aarch64-linux"
